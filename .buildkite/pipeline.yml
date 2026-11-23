@@ -1,0 +1,18 @@
+agents:
+  queue: hosted
+
+steps:
+  - label: ":docker: Validate image inputs"
+    key: validate
+    command:
+      - docker build --check -f providers/e2b/Dockerfile .
+      - docker build --check -f base/Dockerfile .
+    timeout_in_minutes: 5
+
+  - label: ":docker: Build and publish lab images"
+    key: publish
+    if: build.branch == "main" && build.source == "webhook"
+    depends_on: validate
+    command: .buildkite/publish.sh
+    timeout_in_minutes: 45
+    artifact_paths: artifacts/*
