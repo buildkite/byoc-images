@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM golang:1.27.3-bookworm@sha256:dc0963f32053e4bc451d24d87e3892d42d01021b61f093e98eb95c0352bb84b0 AS agent
 
-ARG AGENT_REVISION=9c505c3ca2e39b027d24cdf4ae814ae383e9726f
+ARG AGENT_REVISION=6592e5808206fd1eae39ee764e9a137d6e78f051
 WORKDIR /src/agent
 RUN git init . \
     && git remote add origin https://github.com/buildkite/agent.git \
@@ -9,14 +9,14 @@ RUN git init . \
     && git checkout --detach FETCH_HEAD \
     && test "$(git rev-parse HEAD)" = "$AGENT_REVISION" \
     && scripts/build-binary.sh linux amd64 "byoc-lab-${AGENT_REVISION}" \
-    && pkg/buildkite-agent-linux-amd64 docker-bootstrap --help
+    && pkg/buildkite-agent-linux-amd64 start --help | grep -F -- --executor-docker-image
 
 FROM docker:29-cli@sha256:34507eb5069d8be82c95dd3b6987d4250fd5fee49b82e2509b7d7a7030740d6d AS docker
 
 FROM ubuntu:24.04@sha256:562111b88caa79c71391c0c4d3c2114a7d5c35915c20561fd893cb1e07929e6b
 
 ARG SOURCE_REVISION
-ARG AGENT_REVISION=9c505c3ca2e39b027d24cdf4ae814ae383e9726f
+ARG AGENT_REVISION=6592e5808206fd1eae39ee764e9a137d6e78f051
 LABEL org.opencontainers.image.source="https://github.com/buildkite/byoc-images" \
       org.opencontainers.image.revision="$SOURCE_REVISION" \
       com.buildkite.byoc.agent-revision="$AGENT_REVISION" \
@@ -35,7 +35,7 @@ RUN apt-get update \
 COPY --from=docker /usr/local/bin/docker /usr/bin/docker
 COPY --from=docker /usr/local/libexec/docker/cli-plugins/ /usr/local/lib/docker/cli-plugins/
 COPY --from=agent /src/agent/pkg/buildkite-agent-linux-amd64 /usr/bin/buildkite-agent
-RUN buildkite-agent docker-bootstrap --help | grep -F -- --image-from-job \
+RUN buildkite-agent start --help | grep -F -- --executor-docker-image \
     && sha256sum /usr/bin/buildkite-agent > /etc/buildkite/agent.sha256 \
     && dockerd --version && docker compose version && docker buildx version
 

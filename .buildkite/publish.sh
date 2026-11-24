@@ -25,8 +25,9 @@ for image in e2b-runtime base; do
   docker run --rm --entrypoint cat "$ref" /etc/buildkite/byoc-image \
     > "artifacts/$image-marker.txt"
   if [[ "$image" == e2b-runtime ]]; then
-    docker run --rm --entrypoint buildkite-agent "$ref" docker-bootstrap --help \
-      > artifacts/docker-bootstrap-help.txt
+    docker run --rm --entrypoint buildkite-agent "$ref" start --help \
+      > artifacts/docker-executor-help.txt
+    grep -F -- --executor-docker-image artifacts/docker-executor-help.txt
     docker run --rm --entrypoint cat "$ref" /etc/buildkite/agent.sha256 \
       > artifacts/agent.sha256
   else
