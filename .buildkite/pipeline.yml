@@ -6,6 +6,7 @@ steps:
     key: validate
     command:
       - docker build --check -f providers/e2b/Dockerfile .
+      - docker build --check -f smol-runtime/Dockerfile .
       - docker build --check -f base/Dockerfile .
     timeout_in_minutes: 5
 

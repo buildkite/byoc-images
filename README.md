@@ -9,21 +9,27 @@ deployment trigger or GitHub Actions publisher.
 | Input | Image | Purpose |
 | --- | --- | --- |
 | `providers/e2b/Dockerfile` | `e2b-runtime` | E2B import/boot fixture with Docker Engine and a source-pinned experimental host agent |
+| `smol-runtime/Dockerfile` | `smol-runtime` | Smol Machines guest with Docker Engine and a pinned published Linux agent |
 | `base/Dockerfile` | `base` | Hosted-toolset-derived job container with Docker client tools, without the agent |
 
 Flagged development consumers follow `e2b-runtime:latest` and `base:latest`.
 The publisher updates the base first, then the runtime. For reproducible qualification,
-use the immutable image reference in the build's `artifacts/e2b-runtime.json`
-or `artifacts/base.json`. Each records the source revision, platform and SHA-256 of `/etc/buildkite/byoc-image`.
+use the immutable image reference in the build's `artifacts/<image>.json`.
+Each records the source revision, platform and SHA-256 of `/etc/buildkite/byoc-image`.
 The build also records the host agent binary hash and experimental command help.
 
 The host agent supplies its own binary read-only at `/buildkite-agent/bin/buildkite-agent` in the job container. No
-agent is registered and no job/provider credentials are baked into either image.
+agent is registered and no job/provider credentials are baked into the images.
 E2B template preparation calls image-owned `/bin/start` and `/bin/ready`.
 They start the uncredentialed Docker service idempotently with `systemctl start docker.service`,
 check `docker info`, and pull `base:latest` before capturing warm state. E2B already starts system services;
 launching a second `dockerd` conflicts with the running daemon. Preparation must
 not start a registered agent.
+
+For Smol Machines, `smol-runtime` is the OCI guest image; `base` is still a job
+container image. The guest runs `dockerd` without systemd. Keep Docker state on
+guest storage, not the guest's root overlay or the machine host's Docker socket.
+For local `smolvm`, use a `docker save` archive if native registry import fails.
 
 The experimental agent uses `start --experiment docker-executor --executor docker`
 with the shared base as `--executor-docker-image`. The server resolves
