@@ -8,7 +8,7 @@ deployment trigger or GitHub Actions publisher.
 
 | Input | Image | Purpose |
 | --- | --- | --- |
-| `providers/e2b/Dockerfile` | `e2b-runtime` | E2B import/boot fixture with Docker Engine and a source-pinned experimental host agent |
+| `e2b-runtime/Dockerfile` | `e2b-runtime` | E2B import/boot fixture with Docker Engine and a source-pinned experimental host agent |
 | `base/Dockerfile` | `base` | Hosted-toolset-derived job container with Docker client tools, without the agent |
 
 Flagged development consumers follow `e2b-runtime:latest` and `base:latest`.
