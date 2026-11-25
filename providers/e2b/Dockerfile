@@ -35,6 +35,7 @@ RUN apt-get update \
 COPY --from=docker /usr/local/bin/docker /usr/bin/docker
 COPY --from=docker /usr/local/libexec/docker/cli-plugins/ /usr/local/lib/docker/cli-plugins/
 COPY --from=agent /src/agent/pkg/buildkite-agent-linux-amd64 /usr/bin/buildkite-agent
+COPY --chmod=755 providers/e2b/bin/start providers/e2b/bin/ready /usr/bin/
 RUN buildkite-agent start --help | grep -F -- --executor-docker-image \
     && sha256sum /usr/bin/buildkite-agent > /etc/buildkite/agent.sha256 \
     && dockerd --version && docker compose version && docker buildx version

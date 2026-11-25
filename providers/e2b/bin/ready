@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+sudo -n /usr/bin/docker info >/dev/null
+exec sudo -n /usr/bin/docker pull packages.buildkite.com/buildkite/byoc/base:latest

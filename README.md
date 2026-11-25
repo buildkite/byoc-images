@@ -11,21 +11,22 @@ deployment trigger or GitHub Actions publisher.
 | `providers/e2b/Dockerfile` | `e2b-runtime` | E2B import/boot fixture with Docker Engine and a source-pinned experimental host agent |
 | `base/Dockerfile` | `base` | Hosted-toolset-derived job container with Docker client tools, without the agent |
 
-Use the immutable image reference in the build's `artifacts/e2b-runtime.json`
-or `artifacts/base.json`, not the commit tag, for consumers. Each records the
-source revision, platform and SHA-256 of `/etc/buildkite/byoc-image`.
+Flagged development consumers follow `e2b-runtime:latest` and `base:latest`.
+The publisher updates the base first, then the runtime. For reproducible qualification,
+use the immutable image reference in the build's `artifacts/e2b-runtime.json`
+or `artifacts/base.json`. Each records the source revision, platform and SHA-256 of `/etc/buildkite/byoc-image`.
 The build also records the host agent binary hash and experimental command help.
 
 The host agent supplies its own binary read-only at `/buildkite-agent/bin/buildkite-agent` in the job container. No
 agent is registered and no job/provider credentials are baked into either image.
-E2B template preparation starts the uncredentialed Docker service idempotently
-with `systemctl start docker.service`, checks `docker info`, and pulls the pinned
-default base image before capturing warm state. E2B already starts system services;
+E2B template preparation calls image-owned `/bin/start` and `/bin/ready`.
+They start the uncredentialed Docker service idempotently with `systemctl start docker.service`,
+check `docker info`, and pull `base:latest` before capturing warm state. E2B already starts system services;
 launching a second `dockerd` conflicts with the running daemon. Preparation must
 not start a registered agent.
 
 The experimental agent uses `start --experiment docker-executor --executor docker`
-with the digest-pinned base as `--executor-docker-image`. The server resolves
+with the shared base as `--executor-docker-image`. The server resolves
 step, pipeline, queue, then default image into the typed Agent API `image` field;
 `BUILDKITE_IMAGE` cannot select it. The job image supplies its shell, Git, CA
 certificates and any Docker CLI/plugins it needs. The registered agent stays
