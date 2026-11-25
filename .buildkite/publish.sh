@@ -8,11 +8,12 @@ export DOCKER_CONFIG
 DOCKER_CONFIG=$(mktemp -d)
 trap 'rm -rf "$DOCKER_CONFIG"' EXIT
 
-for image in base e2b-runtime; do
-  dockerfile=base/Dockerfile
-  if [[ "$image" == e2b-runtime ]]; then
-    dockerfile=providers/e2b/Dockerfile
-  fi
+for image in base e2b-runtime smol-runtime; do
+  case "$image" in
+    base) dockerfile=base/Dockerfile ;;
+    e2b-runtime) dockerfile=providers/e2b/Dockerfile ;;
+    smol-runtime) dockerfile=providers/smolvm/Dockerfile ;;
+  esac
   ref="$registry/$image:$tag"
   latest_ref="$registry/$image:latest"
 
@@ -33,6 +34,12 @@ for image in base e2b-runtime; do
     grep -F -- --executor-docker-image artifacts/docker-executor-help.txt
     docker run --rm --entrypoint cat "$ref" /etc/buildkite/agent.sha256 \
       > artifacts/agent.sha256
+  elif [[ "$image" == smol-runtime ]]; then
+    docker run --rm --entrypoint bash "$ref" -ec \
+      'sha256sum -c /etc/buildkite/agent.sha256; buildkite-agent --version; dockerd --version' \
+      > artifacts/smol-runtime-tools.txt
+    docker run --rm --entrypoint cat "$ref" /etc/buildkite/agent.sha256 \
+      > artifacts/smol-runtime-agent.sha256
   else
     docker run --rm --entrypoint bash "$ref" -ec \
       'if command -v buildkite-agent; then exit 1; fi; node --version; git lfs version; aws --version; docker compose version; docker buildx version' \
