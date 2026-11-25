@@ -9,7 +9,7 @@ deployment trigger or GitHub Actions publisher.
 | Input | Image | Purpose |
 | --- | --- | --- |
 | `providers/e2b/Dockerfile` | `e2b-runtime` | E2B import/boot fixture with Docker Engine and a source-pinned experimental host agent |
-| `providers/smolvm/Dockerfile` | `smol-runtime` | Smol Machines guest with Docker Engine and a pinned published Linux agent |
+| `smol-runtime/Dockerfile` | `smol-runtime` | Smol Machines guest with Docker Engine and a pinned published Linux agent |
 | `base/Dockerfile` | `base` | Hosted-toolset-derived job container with Docker client tools, without the agent |
 
 Flagged development consumers follow `e2b-runtime:latest` and `base:latest`.

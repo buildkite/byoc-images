@@ -1,9 +1,17 @@
 # syntax=docker/dockerfile:1
-FROM packages.buildkite.com/buildkite/byoc/e2b-runtime@sha256:3001df48b0168bd065edb4ed251005162a0ccbd44aec5f2f856e2494f1f2cdb5
+FROM ubuntu:24.04@sha256:562111b88caa79c71391c0c4d3c2114a7d5c35915c20561fd893cb1e07929e6b
 
 ARG SOURCE_REVISION
-LABEL org.opencontainers.image.revision="$SOURCE_REVISION" \
-      com.buildkite.byoc.agent-revision="0ae35f60606b8878f4d2f83011e0a10666443385"
+LABEL org.opencontainers.image.source="https://github.com/buildkite/byoc-images" \
+      org.opencontainers.image.revision="$SOURCE_REVISION" \
+      com.buildkite.byoc.agent-revision="0ae35f60606b8878f4d2f83011e0a10666443385" \
+      com.buildkite.byoc.qualification="lab-only"
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+       bash ca-certificates curl docker.io git iptables openssh-client \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /etc/buildkite /buildkite/builds /buildkite/job-context
 
 ADD --chmod=0755 --checksum=sha256:42d81ef0a96fc4b006cdc7d3bc49b2a8afef13115dfb20b4da40f70a33f1f928 \
     https://download.buildkite.com/agent/experimental/4.12.0.15529/buildkite-agent-linux-amd64 /usr/bin/buildkite-agent

@@ -9,11 +9,10 @@ DOCKER_CONFIG=$(mktemp -d)
 trap 'rm -rf "$DOCKER_CONFIG"' EXIT
 
 for image in base e2b-runtime smol-runtime; do
-  case "$image" in
-    base) dockerfile=base/Dockerfile ;;
-    e2b-runtime) dockerfile=providers/e2b/Dockerfile ;;
-    smol-runtime) dockerfile=providers/smolvm/Dockerfile ;;
-  esac
+  dockerfile="$image/Dockerfile"
+  if [[ "$image" == e2b-runtime ]]; then
+    dockerfile=providers/e2b/Dockerfile
+  fi
   ref="$registry/$image:$tag"
   latest_ref="$registry/$image:latest"
 
